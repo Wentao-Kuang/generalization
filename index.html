@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Generalization</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script type="text/javascript" src="./simply.js"></script>
+    <script type="text/javascript" src="coastline.geojson"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .slidecontainer {
+            width: 100%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 25px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .info {
+            width: 30%;
+            float: left;
+            height: 100px;
+        }
+
+        .config {
+            width: 70%;
+            float: left;
+            height: 100px;
+        }
+
+        .zoom {
+            margin-top: 10px;
+            width: 25%;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="menu" style="width: 100%; height: 20%;">
+        <div class="slidecontainer">
+            <input type="range" min="0" max="1" value="0" step="0.001" class="slider" id="myRange">
+            <input type="button" onclick="updateSlider(-0.001)" value="-0.001">
+            <input type="button" onclick="updateSlider(-0.0005)" value="-0.0005">
+            <input type="button" onclick="updateSlider(-0.0001)" value="-0.0001">
+            <input type="button" onclick="updateSlider(0.0001)" value="+0.0001">
+            <input type="button" onclick="updateSlider(0.0005)" value="+0.0005">
+            <input type="button" onclick="updateSlider(0.001)" value="+0.001">
+            <input type="button" onclick="simplifyMap()" value="Apply">
+        </div>
+        <div class="info">
+            <p>Original Size: <span id="original"></span></p>
+            <p>Tolerance: <span id="tolerance"></span></p>
+            <p>Optimized Size: <span id="optimized"></span></p>
+        </div>
+
+        <div class="config">
+            <p>Copy the config Json Here</p>
+            <textarea id="updateConfig" cols="100" rows="3"></textarea>
+            <input type="button" onclick="updateConfig()" value="Update Config">
+        </div>
+
+        <div class="zoom">
+            <input type="button" onclick="setZoom(0)" value="Zoom:0">
+            <label>Tolerance:</label>
+            <input type="text" id="z0">
+            <input type="button" onclick="setTolerance('z0')" value="Set"><br>
+            <input type="button" onclick="setZoom(1)" value="Zoom:1">
+            <label>Tolerance:</label>
+            <input type="text" id="z1">
+            <input type="button" onclick="setTolerance('z1')" value="Set"><br>
+            <input type="button" onclick="setZoom(2)" value="Zoom:2">
+            <label>Tolerance:</label>
+            <input type="text" id="z2">
+            <input type="button" onclick="setTolerance('z2')" value="Set"><br>
+        </div>
+        <div class="zoom">
+            <input type="button" onclick="setZoom(3)" value="Zoom:3">
+            <label>Tolerance:</label>
+            <input type="text" id="z3">
+            <input type="button" onclick="setTolerance('z3')" value="Set"><br>
+            <input type="button" onclick="setZoom(4)" value="Zoom:4">
+            <label>Tolerance:</label>
+            <input type="text" id="z4">
+            <input type="button" onclick="setTolerance('z4')" value="Set"><br>
+            <input type="button" onclick="setZoom(5)" value="Zoom:5">
+            <label>Tolerance:</label>
+            <input type="text" id="z5">
+            <input type="button" onclick="setTolerance('z5')" value="Set"><br>
+        </div>
+        <div class="zoom">
+            <input type="button" onclick="setZoom(6)" value="Zoom:6">
+            <label>Tolerance:</label>
+            <input type="text" id="z6">
+            <input type="button" onclick="setTolerance('z6')" value="Set"><br>
+            <input type="button" onclick="setZoom(7)" value="Zoom:7">
+            <label>Tolerance:</label>
+            <input type="text" id="z7">
+            <input type="button" onclick="setTolerance('z7')" value="Set"><br>
+            <input type="button" onclick="setZoom(8)" value="Zoom:8">
+            <label>Tolerance:</label>
+            <input type="text" id="z8">
+            <input type="button" onclick="setTolerance('z8')" value="Set"><br>
+        </div>
+        <div class="zoom">
+            <input type="button" onclick="setZoom(9)" value="Zoom:9">
+            <label>Tolerance:</label>
+            <input type="text" id="z9">
+            <input type="button" onclick="setTolerance('z9')" value="Set"><br>
+            <input type="button" onclick="setZoom(10)" value="Zoom:10">
+            <label>Tolerance:</label>
+            <input type="text" id="z10">
+            <input type="button" onclick="setTolerance('z10')" value="Set"><br>
+            <input type="button" onclick="download()" value="Download Config">
+        </div>
+    </div>
+    <div id="map" style="width: 100%; height: 80%;"></div>
+    <script>
+        const startPos = [-40.5, 173];
+        const startZoom = 6;
+        var myStyle = {
+            "color": "#0984BA",
+            "weight": 1,
+            "opacity": 1
+        };
+
+        let map = L.map('map').setView(startPos, startZoom);
+        let features = data.features;
+        L.geoJSON(features, { style: myStyle }).addTo(map);
+
+        let slider = document.getElementById("myRange");
+        let output = document.getElementById("tolerance");
+        let original = document.getElementById("original");
+        let optimized = document.getElementById("optimized");
+        const size = JSON.stringify(data).length;
+        original.innerHTML = `${size / 1024 / 1024} MB`;
+
+        slider.onchange = function () {
+            output.innerHTML = this.value;
+        }
+
+        function simplifyMap() {
+            const tolerance = slider.value;
+            const highQuality = true;
+
+            map.eachLayer(function (layer) {
+                map.removeLayer(layer);
+            });
+
+            const simplified = simplifyGeojson(data, tolerance, false);
+            const size = JSON.stringify(simplified).length;
+            L.geoJSON(simplified.features, { style: myStyle }).addTo(map);
+            output.innerHTML = tolerance;
+            optimized.innerHTML = `${size / 1024 / 1024} MB`;
+        }
+
+        function setZoom(zoom) {
+            map.setView(startPos, zoom);
+        }
+
+        function updateSlider(change) {
+            slider.value = parseFloat(slider.value) + change;
+        }
+
+        function setTolerance(text) {
+            document.getElementById(text).value = slider.value;
+        }
+
+        function download() {
+            const output = {
+                "z0": document.getElementById("z0").value,
+                "z1": document.getElementById("z1").value,
+                "z2": document.getElementById("z2").value,
+                "z3": document.getElementById("z3").value,
+                "z4": document.getElementById("z4").value,
+                "z5": document.getElementById("z5").value,
+                "z6": document.getElementById("z6").value,
+                "z7": document.getElementById("z7").value,
+                "z8": document.getElementById("z8").value,
+                "z9": document.getElementById("z9").value,
+                "z10": document.getElementById("z10").value
+            }
+            const text = JSON.stringify(output);
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', 'output.json');
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+
+        function updateConfig() {
+            let configJson = document.getElementById("updateConfig").value;
+            const config = JSON.parse(configJson);
+            for (zoom in config) {
+                document.getElementById(zoom).value = config[zoom]
+            }
+        }
+    </script>
+
+    <script>
+        function simplifyFeature(feat, tolerance) {
+            let geom = feat.geometry;
+            let type = geom.type;
+            if (type === "LineString") {
+                geom.coordinates = simplify(geom.coordinates, tolerance);
+            } else if (type === "Polygon" || type === "MultiLineString") {
+                geom.coordinates = geom.coordinates
+                    .map((f) => {
+                        f = simplify(f, tolerance);
+                        if (f.length === 2) return null;
+                        return f;
+                    })
+                    .filter(Boolean);
+            } else if (type === "MultiPolygon") {
+                for (let k = 0; k < geom.coordinates.length; k++) {
+                    for (let l = 0; l < geom.coordinates[k].length; l++) {
+                        geom.coordinates[k] = geom.coordinates[k]
+                            .map((f) => {
+                                f = simplify(f, tolerance);
+                                if (f.length === 2) return null;
+                                return f;
+                            })
+                            .filter(Boolean);
+                    }
+                }
+            }
+            return feat;
+        }
+
+        // modifies in-place
+        function simplifyFeatureCollection(fc, tolerance) {
+            for (let i = 0; i < fc.features.length; i++) {
+                fc.features[i] = simplifyFeature(fc.features[i], tolerance);
+            }
+
+            return fc;
+        }
+
+        function simplifyGeojson(geojson, tolerance, dontClone) {
+            if (!dontClone) geojson = JSON.parse(JSON.stringify(geojson)); // clone obj
+            if (geojson.features) return simplifyFeatureCollection(geojson, tolerance);
+            else if (geojson.type && geojson.type === "Feature")
+                return simplifyFeature(geojson, tolerance);
+            else return new Error("FeatureCollection or individual Feature required");
+        }
+
+    </script>
+</body>
+
+</html>
