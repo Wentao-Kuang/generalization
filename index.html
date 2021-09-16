@@ -73,7 +73,7 @@
 <body>
     <div id="menu" style="width: 100%; height: 20%;">
         <div class="slidecontainer">
-            <input type="range" min="0" max="1" value="0" step="0.001" class="slider" id="myRange">
+            <input type="range" min="0" max="1" value="0" step="0.0001" class="slider" id="myRange">
             <input type="button" onclick="updateSlider(-0.001)" value="-0.001">
             <input type="button" onclick="updateSlider(-0.0005)" value="-0.0005">
             <input type="button" onclick="updateSlider(-0.0001)" value="-0.0001">
@@ -81,6 +81,8 @@
             <input type="button" onclick="updateSlider(0.0005)" value="+0.0005">
             <input type="button" onclick="updateSlider(0.001)" value="+0.001">
             <input type="button" onclick="simplifyMap()" value="Apply">
+            <label>Sync Settings</label>
+            <input type="checkbox" id="syncSetting">
         </div>
         <div class="info">
             <p>Original Size: <span id="original"></span></p>
@@ -90,75 +92,93 @@
 
         <div class="config">
             <p>Copy the config Json Here</p>
-            <textarea id="updateConfig" cols="100" rows="3"></textarea>
-            <input type="button" onclick="updateConfig()" value="Update Config">
+            <textarea id="updateConfig" cols="100" rows="3" onkeyup="updateConfig()"></textarea>
         </div>
 
         <div class="zoom">
             <input type="button" onclick="setZoom(0)" value="Zoom:0">
             <label>Tolerance:</label>
-            <input type="text" id="z0">
+            <input type="text" onkeyup="syncConfig()" id="z0">
             <input type="button" onclick="setTolerance('z0')" value="Set"><br>
             <input type="button" onclick="setZoom(1)" value="Zoom:1">
             <label>Tolerance:</label>
-            <input type="text" id="z1">
+            <input type="text" onkeyup="syncConfig()" id="z1">
             <input type="button" onclick="setTolerance('z1')" value="Set"><br>
             <input type="button" onclick="setZoom(2)" value="Zoom:2">
             <label>Tolerance:</label>
-            <input type="text" id="z2">
+            <input type="text" onkeyup="syncConfig()" id="z2">
             <input type="button" onclick="setTolerance('z2')" value="Set"><br>
         </div>
         <div class="zoom">
             <input type="button" onclick="setZoom(3)" value="Zoom:3">
             <label>Tolerance:</label>
-            <input type="text" id="z3">
+            <input type="text" onkeyup="syncConfig()" id="z3">
             <input type="button" onclick="setTolerance('z3')" value="Set"><br>
             <input type="button" onclick="setZoom(4)" value="Zoom:4">
             <label>Tolerance:</label>
-            <input type="text" id="z4">
+            <input type="text" onkeyup="syncConfig()" id="z4">
             <input type="button" onclick="setTolerance('z4')" value="Set"><br>
             <input type="button" onclick="setZoom(5)" value="Zoom:5">
             <label>Tolerance:</label>
-            <input type="text" id="z5">
+            <input type="text" onkeyup="syncConfig()" id="z5">
             <input type="button" onclick="setTolerance('z5')" value="Set"><br>
         </div>
         <div class="zoom">
             <input type="button" onclick="setZoom(6)" value="Zoom:6">
             <label>Tolerance:</label>
-            <input type="text" id="z6">
+            <input type="text" onkeyup="syncConfig()" id="z6">
             <input type="button" onclick="setTolerance('z6')" value="Set"><br>
             <input type="button" onclick="setZoom(7)" value="Zoom:7">
             <label>Tolerance:</label>
-            <input type="text" id="z7">
+            <input type="text" onkeyup="syncConfig()" id="z7">
             <input type="button" onclick="setTolerance('z7')" value="Set"><br>
             <input type="button" onclick="setZoom(8)" value="Zoom:8">
             <label>Tolerance:</label>
-            <input type="text" id="z8">
+            <input type="text" onkeyup="syncConfig()" id="z8">
             <input type="button" onclick="setTolerance('z8')" value="Set"><br>
         </div>
         <div class="zoom">
             <input type="button" onclick="setZoom(9)" value="Zoom:9">
             <label>Tolerance:</label>
-            <input type="text" id="z9">
+            <input type="text" onkeyup="syncConfig()" id="z9">
             <input type="button" onclick="setTolerance('z9')" value="Set"><br>
             <input type="button" onclick="setZoom(10)" value="Zoom:10">
             <label>Tolerance:</label>
-            <input type="text" id="z10">
+            <input type="text" onkeyup="syncConfig()" id="z10">
             <input type="button" onclick="setTolerance('z10')" value="Set"><br>
             <input type="button" onclick="download()" value="Download Config">
         </div>
     </div>
     <div id="map" style="width: 100%; height: 80%;"></div>
     <script>
+        // Init map
         const startPos = [-40.5, 173];
         const startZoom = 6;
-        var myStyle = {
+        let myStyle = {
             "color": "#0984BA",
             "weight": 1,
             "opacity": 1
         };
 
         let map = L.map('map').setView(startPos, startZoom);
+
+        // Sync generalization by zoom
+        let prevZoom = map.getZoom();
+
+        map.on('zoomend', function (e) {
+            let checked = document.getElementById("syncSetting").checked;
+            let currZoom = map.getZoom();
+            if (checked) {
+                let diff = Math.trunc(prevZoom) - Math.trunc(currZoom);
+                if (diff >= 1 || diff <= -1) {
+                    t = document.getElementById("z" + Math.trunc(currZoom)).value;
+                    simplifyMap(t)
+                }
+            }
+            prevZoom = currZoom;
+        });
+
+        // Smooth by slides
         let features = data.features;
         L.geoJSON(features, { style: myStyle }).addTo(map);
 
@@ -173,8 +193,10 @@
             output.innerHTML = this.value;
         }
 
-        function simplifyMap() {
-            const tolerance = slider.value;
+        function simplifyMap(tolerance) {
+            if (tolerance === undefined) {
+                tolerance = slider.value;
+            }
             const highQuality = true;
 
             map.eachLayer(function (layer) {
@@ -198,6 +220,33 @@
 
         function setTolerance(text) {
             document.getElementById(text).value = slider.value;
+            syncConfig()
+        }
+
+        function updateConfig() {
+            let configJson = document.getElementById("updateConfig").value;
+            const config = JSON.parse(configJson);
+            for (zoom in config) {
+                document.getElementById(zoom).value = config[zoom]
+            }
+        }
+
+        function syncConfig() {
+            const output = {
+                "z0": document.getElementById("z0").value,
+                "z1": document.getElementById("z1").value,
+                "z2": document.getElementById("z2").value,
+                "z3": document.getElementById("z3").value,
+                "z4": document.getElementById("z4").value,
+                "z5": document.getElementById("z5").value,
+                "z6": document.getElementById("z6").value,
+                "z7": document.getElementById("z7").value,
+                "z8": document.getElementById("z8").value,
+                "z9": document.getElementById("z9").value,
+                "z10": document.getElementById("z10").value
+            }
+            const text = JSON.stringify(output);
+            document.getElementById("updateConfig").value = text;
         }
 
         function download() {
@@ -228,13 +277,6 @@
             document.body.removeChild(element);
         }
 
-        function updateConfig() {
-            let configJson = document.getElementById("updateConfig").value;
-            const config = JSON.parse(configJson);
-            for (zoom in config) {
-                document.getElementById(zoom).value = config[zoom]
-            }
-        }
     </script>
 
     <script>
