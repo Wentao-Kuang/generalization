@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
     <script type="text/javascript" src="./simply.js"></script>
-    <script type="text/javascript" src="coastline.geojson"></script>
     <style>
         html,
         body {
@@ -89,7 +88,8 @@
             <p>Tolerance: <span id="tolerance"></span></p>
             <p>Optimized Size: <span id="optimized"></span></p>
         </div>
-
+        <p>Upload the GeoJson file</p>
+        <input id="contentFile" type="file" accept="application/geo+json" />
         <div class="config">
             <p>Copy the config Json Here</p>
             <textarea id="updateConfig" cols="100" rows="3" onkeyup="updateConfig()"></textarea>
@@ -160,6 +160,7 @@
             "opacity": 1
         };
 
+        let data;
         let map = L.map('map').setView(startPos, startZoom);
 
         // Sync generalization by zoom
@@ -178,17 +179,41 @@
             prevZoom = currZoom;
         });
 
-        // Smooth by slides
-        let features = data.features;
-        L.geoJSON(features, { style: myStyle }).addTo(map);
+        // Read geojson data
+        document.getElementById('contentFile').onchange = function (evt) {
+            try {
+                let files = evt.target.files;
+                if (!files.length) {
+                    alert('No file selected!');
+                    return;
+                }
+                let file = files[0];
+                let reader = new FileReader();
+                const self = this;
+                reader.onload = (event) => {
+                    // console.log('FILE CONTENT', event.target.result);
+                    json = event.target.result;
+                    data = JSON.parse(json);
+                    loadMap(data);
+                };
+                reader.readAsText(file);
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
-        let slider = document.getElementById("myRange");
-        let output = document.getElementById("tolerance");
-        let original = document.getElementById("original");
+        function loadMap(data) {
+            let features = data.features;
+            L.geoJSON(features, { style: myStyle }).addTo(map);
+            // Smooth by slides
+            let original = document.getElementById("original");
+            const size = JSON.stringify(data).length;
+            original.innerHTML = `${size / 1024 / 1024} MB`;
+        }
+
         let optimized = document.getElementById("optimized");
-        const size = JSON.stringify(data).length;
-        original.innerHTML = `${size / 1024 / 1024} MB`;
-
+        let output = document.getElementById("tolerance");
+        let slider = document.getElementById("myRange");
         slider.onchange = function () {
             output.innerHTML = this.value;
         }
@@ -276,7 +301,6 @@
 
             document.body.removeChild(element);
         }
-
     </script>
 
     <script>
