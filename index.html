@@ -108,12 +108,12 @@
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z2">
             <input type="button" onclick="setTolerance('z2')" value="Set"><br>
-        </div>
-        <div class="zoom">
             <input type="button" onclick="setZoom(3)" value="Zoom:3">
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z3">
             <input type="button" onclick="setTolerance('z3')" value="Set"><br>
+        </div>
+        <div class="zoom">
             <input type="button" onclick="setZoom(4)" value="Zoom:4">
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z4">
@@ -122,8 +122,6 @@
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z5">
             <input type="button" onclick="setTolerance('z5')" value="Set"><br>
-        </div>
-        <div class="zoom">
             <input type="button" onclick="setZoom(6)" value="Zoom:6">
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z6">
@@ -132,12 +130,12 @@
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z7">
             <input type="button" onclick="setTolerance('z7')" value="Set"><br>
+        </div>
+        <div class="zoom">
             <input type="button" onclick="setZoom(8)" value="Zoom:8">
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z8">
             <input type="button" onclick="setTolerance('z8')" value="Set"><br>
-        </div>
-        <div class="zoom">
             <input type="button" onclick="setZoom(9)" value="Zoom:9">
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z9">
@@ -146,6 +144,30 @@
             <label>Tolerance:</label>
             <input type="text" onkeyup="syncConfig()" id="z10">
             <input type="button" onclick="setTolerance('z10')" value="Set"><br>
+            <input type="button" onclick="setZoom(11)" value="Zoom:11">
+            <label>Tolerance:</label>
+            <input type="text" onkeyup="syncConfig()" id="z11">
+            <input type="button" onclick="setTolerance('z11')" value="Set"><br>
+        </div>
+        <div class="zoom">
+            <input type="button" onclick="setZoom(12)" value="Zoom:12">
+            <label>Tolerance:</label>
+            <input type="text" onkeyup="syncConfig()" id="z12">
+            <input type="button" onclick="setTolerance('z12')" value="Set"><br>
+            <input type="button" onclick="setZoom(13)" value="Zoom:13">
+            <label>Tolerance:</label>
+            <input type="text" onkeyup="syncConfig()" id="z13">
+            <input type="button" onclick="setTolerance('z13')" value="Set"><br>
+            <input type="button" onclick="setZoom(14)" value="Zoom:14">
+            <label>Tolerance:</label>
+            <input type="text" onkeyup="syncConfig()" id="z14">
+            <input type="button" onclick="setTolerance('z14')" value="Set"><br>
+            <input type="button" onclick="setZoom(15)" value="Zoom:15">
+            <label>Tolerance:</label>
+            <input type="text" onkeyup="syncConfig()" id="z15">
+            <input type="button" onclick="setTolerance('z15')" value="Set"><br>
+        </div>
+        <div class="zoom">
             <input type="button" onclick="download()" value="Download Config">
         </div>
     </div>
@@ -236,7 +258,7 @@
         }
 
         function setZoom(zoom) {
-            map.setView(startPos, zoom);
+            map.setZoom(zoom);
         }
 
         function updateSlider(change) {
@@ -268,7 +290,12 @@
                 "z7": document.getElementById("z7").value,
                 "z8": document.getElementById("z8").value,
                 "z9": document.getElementById("z9").value,
-                "z10": document.getElementById("z10").value
+                "z10": document.getElementById("z10").value,
+                "z11": document.getElementById("z11").value,
+                "z12": document.getElementById("z12").value,
+                "z13": document.getElementById("z13").value,
+                "z14": document.getElementById("z14").value,
+                "z15": document.getElementById("z15").value
             }
             const text = JSON.stringify(output);
             document.getElementById("updateConfig").value = text;
@@ -286,7 +313,12 @@
                 "z7": document.getElementById("z7").value,
                 "z8": document.getElementById("z8").value,
                 "z9": document.getElementById("z9").value,
-                "z10": document.getElementById("z10").value
+                "z10": document.getElementById("z10").value,
+                "z11": document.getElementById("z11").value,
+                "z12": document.getElementById("z12").value,
+                "z13": document.getElementById("z13").value,
+                "z14": document.getElementById("z14").value,
+                "z15": document.getElementById("z15").value
             }
             const text = JSON.stringify(output);
 
